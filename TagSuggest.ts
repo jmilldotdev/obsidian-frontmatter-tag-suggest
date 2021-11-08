@@ -28,18 +28,25 @@ export default class TagSuggest extends EditorSuggest<string> {
 		editor: Editor,
 		_: TFile
 	): EditorSuggestTriggerInfo | null {
-		const sub = editor.getLine(cursor.line).substring(0, cursor.ch);
-		const match = sub.match(/(?<=tags: )\S+$/)?.first();
-		if (match) {
-			const matchData = {
-				end: cursor,
-				start: {
-					ch: sub.lastIndexOf(match),
-					line: cursor.line,
-				},
-				query: match,
-			};
-			return matchData;
+		const onFrontmatterTagLine = editor
+			.getLine(cursor.line)
+			.toLowerCase()
+			.startsWith("tags:");
+		console.log(onFrontmatterTagLine);
+		if (onFrontmatterTagLine) {
+			const sub = editor.getLine(cursor.line).substring(0, cursor.ch);
+			const match = sub.match(/(?<= )\S+$/)?.first();
+			if (match) {
+				const matchData = {
+					end: cursor,
+					start: {
+						ch: sub.lastIndexOf(match),
+						line: cursor.line,
+					},
+					query: match,
+				};
+				return matchData;
+			}
 		}
 		return null;
 	}
@@ -56,7 +63,7 @@ export default class TagSuggest extends EditorSuggest<string> {
 
 	renderSuggestion(suggestion: string, el: HTMLElement): void {
 		const outer = el.createDiv({ cls: "ES-suggester-container" });
-		outer.createDiv({ cls: "ES-emoji" }).setText(suggestion);
+		outer.createDiv({ cls: "ES-emoji" }).setText(`#${suggestion}`);
 	}
 
 	selectSuggestion(suggestion: string): void {
