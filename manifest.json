@@ -1,10 +1,10 @@
 {
-	"id": "obsidian-sample-plugin",
-	"name": "Sample Plugin",
-	"version": "1.0.1",
+	"id": "obsidian-frontmatter-tag-suggest",
+	"name": "Frontmatter Tag Suggest",
+	"version": "0.1.0",
 	"minAppVersion": "0.12.0",
-	"description": "This is a sample plugin for Obsidian. This plugin demonstrates some of the capabilities of the Obsidian API.",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
+	"description": "Offer autocomplete suggestions for tags in frontmatter",
+	"author": "Jonathan Miller",
+	"authorUrl": "https://jmill.dev",
 	"isDesktopOnly": false
 }
