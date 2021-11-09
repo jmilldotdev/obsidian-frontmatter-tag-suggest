@@ -4,7 +4,6 @@ import {
 	EditorSuggest,
 	EditorSuggestContext,
 	EditorSuggestTriggerInfo,
-	getAllTags,
 	Plugin,
 	TFile,
 } from "obsidian";
@@ -25,14 +24,9 @@ class TagSuggest extends EditorSuggest<string> {
 	}
 
 	getTags(): string[] {
-		const app = this.plugin.app;
-		let tags: string[] = [];
-		const files = app.vault.getMarkdownFiles();
-		files.forEach((p) => {
-			const cache = app.metadataCache.getFileCache(p);
-			tags.push(...getAllTags(cache));
-		});
-		return [...new Set(tags)].sort().map((p) => p.split("#").pop());
+		//@ts-expect-error, private method
+		const tags: any = this.plugin.app.metadataCache.getTags();
+		return [...Object.keys(tags)].map((p) => p.split("#").pop());
 	}
 
 	onTrigger(
@@ -40,10 +34,9 @@ class TagSuggest extends EditorSuggest<string> {
 		editor: Editor,
 		_: TFile
 	): EditorSuggestTriggerInfo | null {
-		const onFrontmatterTagLine = editor
-			.getLine(cursor.line)
-			.toLowerCase()
-			.startsWith("tags:");
+		const lineContents = editor.getLine(cursor.line).toLowerCase();
+		const onFrontmatterTagLine =
+			lineContents.startsWith("tags:") || lineContents.startsWith("tag:");
 		if (onFrontmatterTagLine) {
 			const sub = editor.getLine(cursor.line).substring(0, cursor.ch);
 			const match = sub.match(/(?<= )\S+$/)?.first();
