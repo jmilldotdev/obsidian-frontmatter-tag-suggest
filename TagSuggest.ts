@@ -16,11 +16,18 @@ export default class TagSuggest extends EditorSuggest<string> {
 	constructor(plugin: FrontmatterTagSuggestPlugin) {
 		super(plugin.app);
 		this.plugin = plugin;
-		this.tags = getAllTags(
-			this.plugin.app.metadataCache.getFileCache(
-				this.plugin.app.workspace.getActiveFile()
-			)
-		).map((p) => p.split("#").pop());
+		this.tags = this.getTags();
+	}
+
+	getTags(): string[] {
+		const app = this.plugin.app;
+		let tags: string[] = [];
+		const files = app.vault.getMarkdownFiles();
+		files.forEach((p) => {
+			const cache = app.metadataCache.getFileCache(p);
+			tags.push(...getAllTags(cache));
+		});
+		return [...new Set(tags)].sort().map((p) => p.split("#").pop());
 	}
 
 	onTrigger(
@@ -32,11 +39,11 @@ export default class TagSuggest extends EditorSuggest<string> {
 			.getLine(cursor.line)
 			.toLowerCase()
 			.startsWith("tags:");
-		console.log(onFrontmatterTagLine);
 		if (onFrontmatterTagLine) {
 			const sub = editor.getLine(cursor.line).substring(0, cursor.ch);
 			const match = sub.match(/(?<= )\S+$/)?.first();
 			if (match) {
+				this.tags = this.getTags();
 				const matchData = {
 					end: cursor,
 					start: {
@@ -52,18 +59,15 @@ export default class TagSuggest extends EditorSuggest<string> {
 	}
 
 	getSuggestions(context: EditorSuggestContext): string[] {
-		console.log(context.query);
-		console.log(this.tags);
 		const suggestions = this.tags.filter((p) =>
-			p.startsWith(context.query)
+			p.toLowerCase().contains(context.query.toLowerCase())
 		);
-		console.log(suggestions);
 		return suggestions;
 	}
 
 	renderSuggestion(suggestion: string, el: HTMLElement): void {
 		const outer = el.createDiv({ cls: "ES-suggester-container" });
-		outer.createDiv({ cls: "ES-emoji" }).setText(`#${suggestion}`);
+		outer.createDiv({ cls: "ES-tags" }).setText(`#${suggestion}`);
 	}
 
 	selectSuggestion(suggestion: string): void {
