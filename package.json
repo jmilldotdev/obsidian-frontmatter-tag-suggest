@@ -1,7 +1,7 @@
 {
 	"name": "obsidian-frontmatter-tag-suggest",
-	"version": "0.1.1",
-	"description": "Offer autocomplete suggestions for tags in frontmatter",
+	"version": "0.2.0",
+	"description": "Autocompletes tags in the frontmatter tags field",
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
