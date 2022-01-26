@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-frontmatter-tag-suggest",
-	"version": "0.2.0",
+	"version": "0.3.0",
 	"description": "Autocompletes tags in the frontmatter tags field",
 	"main": "main.js",
 	"scripts": {
