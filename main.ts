@@ -51,7 +51,7 @@ class TagSuggest extends EditorSuggest<string> {
 			this.inRange(editor.getRange({ line: 0, ch: 0 }, cursor));
 		if (onFrontmatterTagLine) {
 			const sub = editor.getLine(cursor.line).substring(0, cursor.ch);
-			const match = sub.match(/(?<= )\S+$/)?.first();
+			const match = sub.match(/(\S+)$/)?.first();
 			if (match) {
 				this.tags = this.getTags();
 				const matchData = {
