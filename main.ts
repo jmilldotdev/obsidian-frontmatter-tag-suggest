@@ -28,7 +28,17 @@ class TagSuggest extends EditorSuggest<string> {
 		const tags: any = this.plugin.app.metadataCache.getTags();
 		return [...Object.keys(tags)].map((p) => p.split("#").pop());
 	}
-
+	inRange(range: string) {
+		if (!range || !range.length) return false;
+		if (range.match(/^---\n/gm)?.length != 1) return false;
+		if (!/^tags?:/gm.test(range)) return false;
+		const split = range.split(/(^\w+:?\s*\n?)/gm);
+		for (let i = split.length - 1; i >= 0; i--) {
+			if (/(^\w+:?\s*\n?)/gm.test(split[i]))
+				return split[i].startsWith("tags:");
+		}
+		return false;
+	}
 	onTrigger(
 		cursor: EditorPosition,
 		editor: Editor,
@@ -36,7 +46,9 @@ class TagSuggest extends EditorSuggest<string> {
 	): EditorSuggestTriggerInfo | null {
 		const lineContents = editor.getLine(cursor.line).toLowerCase();
 		const onFrontmatterTagLine =
-			lineContents.startsWith("tags:") || lineContents.startsWith("tag:");
+			lineContents.startsWith("tags:") ||
+			lineContents.startsWith("tag:") ||
+			this.inRange(editor.getRange({ line: 0, ch: 0 }, cursor));
 		if (onFrontmatterTagLine) {
 			const sub = editor.getLine(cursor.line).substring(0, cursor.ch);
 			const match = sub.match(/(?<= )\S+$/)?.first();
