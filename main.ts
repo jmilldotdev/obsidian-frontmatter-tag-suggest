@@ -39,6 +39,7 @@ class TagSuggest extends EditorSuggest<string> {
 		}
 		return false;
 	}
+	inline = false;
 	onTrigger(
 		cursor: EditorPosition,
 		editor: Editor,
@@ -50,6 +51,9 @@ class TagSuggest extends EditorSuggest<string> {
 			lineContents.startsWith("tag:") ||
 			this.inRange(editor.getRange({ line: 0, ch: 0 }, cursor));
 		if (onFrontmatterTagLine) {
+			this.inline =
+				lineContents.startsWith("tags:") ||
+				lineContents.startsWith("tag:");
 			const sub = editor.getLine(cursor.line).substring(0, cursor.ch);
 			const match = sub.match(/(\S+)$/)?.first();
 			if (match) {
@@ -82,6 +86,11 @@ class TagSuggest extends EditorSuggest<string> {
 
 	selectSuggestion(suggestion: string): void {
 		if (this.context) {
+			if (this.inline) {
+				suggestion = `${suggestion},`;
+			} else {
+				suggestion = `${suggestion}\n -`;
+			}
 			(this.context.editor as Editor).replaceRange(
 				`${suggestion} `,
 				this.context.start,
