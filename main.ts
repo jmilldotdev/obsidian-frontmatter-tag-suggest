@@ -87,7 +87,7 @@ class TagSuggest extends EditorSuggest<string> {
 	selectSuggestion(suggestion: string): void {
 		if (this.context) {
 			if (this.inline) {
-				suggestion = `${suggestion},`;
+				suggestion = `${suggestion}`;
 			} else {
 				suggestion = `${suggestion}\n -`;
 			}
