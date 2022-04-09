@@ -28,6 +28,26 @@ class TagSuggest extends EditorSuggest<string> {
 		const tags: any = this.plugin.app.metadataCache.getTags();
 		return [...Object.keys(tags)].map((p) => p.split("#").pop());
 	}
+	
+	checkLines(line: number, editor: Editor) {
+		let lineContents = editor.getLine(line).toLowerCase();
+		if (lineContents.startsWith("tags:") || lineContents.startsWith("tag:")) {
+			this.inline = true;
+			return true;
+		} else if (lineContents.trim().startsWith("- ")){
+			this.indent = lineContents.split("-")[0];
+			do {
+				line--;
+				lineContents = editor.getLine(line).toLowerCase();
+			}
+			while (lineContents.trim().startsWith("- "));
+			if (lineContents.startsWith("tags:") || lineContents.startsWith("tag:")) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	inRange(range: string) {
 		if (!range || !range.length) return false;
 		if (range.match(/^---\n/gm)?.length != 1) return false;
@@ -39,21 +59,17 @@ class TagSuggest extends EditorSuggest<string> {
 		}
 		return false;
 	}
+	indent = "";
 	inline = false;
 	onTrigger(
 		cursor: EditorPosition,
 		editor: Editor,
 		_: TFile
 	): EditorSuggestTriggerInfo | null {
-		const lineContents = editor.getLine(cursor.line).toLowerCase();
 		const onFrontmatterTagLine =
-			lineContents.startsWith("tags:") ||
-			lineContents.startsWith("tag:") ||
+			this.checkLines(cursor.line, editor) ||
 			this.inRange(editor.getRange({ line: 0, ch: 0 }, cursor));
 		if (onFrontmatterTagLine) {
-			this.inline =
-				lineContents.startsWith("tags:") ||
-				lineContents.startsWith("tag:");
 			const sub = editor.getLine(cursor.line).substring(0, cursor.ch);
 			const match = sub.match(/(\S+)$/)?.first();
 			if (match) {
@@ -89,7 +105,7 @@ class TagSuggest extends EditorSuggest<string> {
 			if (this.inline) {
 				suggestion = `${suggestion}`;
 			} else {
-				suggestion = `${suggestion}\n -`;
+				suggestion = `${suggestion}\n${this.indent}-`;
 			}
 			(this.context.editor as Editor).replaceRange(
 				`${suggestion} `,
