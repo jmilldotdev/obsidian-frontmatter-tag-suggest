@@ -46,20 +46,19 @@ export default class FrontmatterTagSuggestPlugin extends Plugin {
 class TagSuggest extends EditorSuggest<string> {
 	plugin: FrontmatterTagSuggestPlugin;
 	tags: string[];
-	indent: string;
 
 	constructor(plugin: FrontmatterTagSuggestPlugin) {
 		super(plugin.app);
 		this.plugin = plugin;
-
-		const { useSpaces, numSpaces } = plugin.settings;
-		this.indent = useSpaces ? (" ").repeat(numSpaces) : "\t";
 	}
 
 	getTags(): string[] {
 		//@ts-expect-error, private method
 		const tags: any = this.plugin.app.metadataCache.getTags();
-		return [...Object.keys(tags)].map((p) => p.split("#").pop());
+		const collator = new Intl.Collator(undefined, {numeric: true, sensitivity: 'base'});
+		return [...Object.keys(tags)]
+			.map((p) => p.split("#").pop())
+			.sort(collator.compare);
 	}
 
 	inRange(range: string) {
@@ -124,11 +123,13 @@ class TagSuggest extends EditorSuggest<string> {
 				if (this.inline) {
 					suggestion = `${suggestion}, `;
 				} else {
-					suggestion = `${suggestion}\n${this.indent}-`;
+					const { useSpaces, numSpaces } = this.plugin.settings;
+					const indent = useSpaces ? (" ").repeat(numSpaces) : "\t";
+					suggestion = `${suggestion}\n${indent}- `;
 				}
 			}
 			(this.context.editor as Editor).replaceRange(
-				`${suggestion} `,
+				`${suggestion}`,
 				this.context.start,
 				this.context.end
 			);
@@ -178,7 +179,7 @@ class Settings extends PluginSettingTab {
 				.setPlaceholder("1")
 				.setValue("" + this.plugin.settings.numSpaces)
 				.onChange(async (value: string) => {
-					let num = parseInt(value, 10);
+					const num = parseInt(value, 10);
 					if (isNaN(num)) return;
 					this.plugin.settings.numSpaces = num;
 					await this.plugin.saveSettings();
