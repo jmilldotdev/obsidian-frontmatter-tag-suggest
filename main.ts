@@ -72,21 +72,28 @@ class TagSuggest extends EditorSuggest<string> {
 		}
 		return false;
 	}
+
 	inline = false;
+	hasAddedEntry = false;
+
 	onTrigger(
 		cursor: EditorPosition,
 		editor: Editor,
 		_: TFile
 	): EditorSuggestTriggerInfo | null {
+		// when not auto adding new entries, don't show suggest immediately after a selection
+		if (this.hasAddedEntry) {
+			this.hasAddedEntry = false;
+			return null;
+		}
+
 		const lineContents = editor.getLine(cursor.line).toLowerCase();
+		this.inline = lineContents.startsWith("tags:") || lineContents.startsWith("tag:")
 		const onFrontmatterTagLine =
-			lineContents.startsWith("tags:") ||
-			lineContents.startsWith("tag:") ||
+			this.inline ||
 			this.inRange(editor.getRange({ line: 0, ch: 0 }, cursor));
+
 		if (onFrontmatterTagLine) {
-			this.inline =
-				lineContents.startsWith("tags:") ||
-				lineContents.startsWith("tag:");
 			const sub = editor.getLine(cursor.line).substring(0, cursor.ch);
 			const match = sub.match(/(\S+)$/)?.first();
 			if (match) {
@@ -133,6 +140,7 @@ class TagSuggest extends EditorSuggest<string> {
 				this.context.start,
 				this.context.end
 			);
+			this.hasAddedEntry = true;
 		}
 	}
 }
@@ -152,7 +160,7 @@ class Settings extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Automatically add another item in multi-line")
-			.setDesc("When enabled, ")
+			.setDesc("When enabled, the plugin will assist in adding a new tag entry to the tags array.")
 			.addToggle((toggle: ToggleComponent) => toggle
 				.setValue(this.plugin.settings.addNewEntry)
 				.onChange(async (value: boolean) => {
