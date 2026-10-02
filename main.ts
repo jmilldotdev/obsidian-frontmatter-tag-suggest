@@ -89,7 +89,12 @@ class TagSuggest extends EditorSuggest<string> {
 			if (this.inline) {
 				suggestion = `${suggestion}`;
 			} else {
-				suggestion = `${suggestion}\n -`;
+				// Reuse the current YAML list marker so the next item stays at the same depth.
+				const listMarker =
+					this.context.editor
+						.getLine(this.context.start.line)
+						.match(/^\s*-/)?.[0] ?? "  -";
+				suggestion = `${suggestion}\n${listMarker}`;
 			}
 			(this.context.editor as Editor).replaceRange(
 				`${suggestion} `,
